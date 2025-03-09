@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Drawer,
   AppBar,
@@ -16,17 +16,21 @@ import { useNavigate } from "react-router-dom";
 
 const drawerWidth = 240;
 
-function DashboardLayout({ children }) {
-  const [open, setOpen] = useState(true);
+function DashboardLayout({ children, isMobile }) {
+  const [open, setOpen] = useState(!isMobile);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem("token");
     navigate("/");
-  };
+  }, [navigate]);
+
+  const toggleDrawer = useCallback(() => {
+    setOpen((prev) => !prev);
+  }, []);
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", width: "100%" }}>
       <AppBar
         position="fixed"
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -35,7 +39,8 @@ function DashboardLayout({ children }) {
           <IconButton
             color="inherit"
             edge="start"
-            onClick={() => setOpen(!open)}
+            onClick={toggleDrawer}
+            sx={{ mr: 2 }}
           >
             <Menu />
           </IconButton>
@@ -47,10 +52,12 @@ function DashboardLayout({ children }) {
           </IconButton>
         </Toolbar>
       </AppBar>
+
       <Drawer
-        variant="persistent"
+        variant={isMobile ? "temporary" : "persistent"}
         anchor="left"
         open={open}
+        onClose={toggleDrawer}
         sx={{
           width: drawerWidth,
           flexShrink: 0,
@@ -70,10 +77,15 @@ function DashboardLayout({ children }) {
 
       <Box
         component="main"
-        sx={{ flexGrow: 1, p: 3, ml: open ? `${drawerWidth}px` : "0" }}
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: `calc(100% - ${open && !isMobile ? drawerWidth : "0px"})`,
+          transition: "width 0.3s ease-in-out",
+          paddingLeft: open && !isMobile ? "16px" : "0px",
+        }}
       >
-        <Toolbar />
-        {children}
+        <Toolbar />ُ{children}
       </Box>
     </Box>
   );
