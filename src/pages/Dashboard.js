@@ -55,7 +55,7 @@ function Dashboard() {
   }, [setUsers]);
 
   const handleAddUser = (newUserData) => {
-    setUsers((prev) => [...prev, newUserData]); //
+    setUsers((prev) => [...prev, newUserData]);
   };
 
   const handleEditUser = (updatedUser) => {
@@ -83,15 +83,15 @@ function Dashboard() {
       field: "actions",
       headerName: "Actions",
       flex: 2,
-      minWidth: 280, // جلوگیری از فشرده شدن دکمه‌ها
+      minWidth: 280,
       sortable: false,
       renderCell: (params) => (
         <Box
           sx={{
             display: "flex",
-            justifyContent: "center", // **وسط‌چین کردن افقی**
-            alignItems: "center", // **وسط‌چین کردن عمودی**
-            height: "100%", // 👈 باعث می‌شود کل ارتفاع سلول پر شود
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
             width: "100%",
             gap: 1,
           }}
@@ -144,7 +144,13 @@ function Dashboard() {
 
   return (
     <DashboardLayout>
-      <Typography variant="h4" gutterBottom>
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{
+          color: theme.palette.mode === "dark" ? "#ffffff" : "#1F2937",
+        }}
+      >
         Users List
       </Typography>
 

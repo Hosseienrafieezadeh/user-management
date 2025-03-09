@@ -5,15 +5,20 @@ import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 import { UserProvider } from "./context/UserContext";
 import { SidebarProvider } from "./context/SidebarContext";
+import { ThemeProviderWrapper } from "./context/ThemeContext";
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
+
 root.render(
-  <BrowserRouter>
-    <UserProvider>
-      <SidebarProvider>
-        <React.StrictMode>
-          <App />
-        </React.StrictMode>
-      </SidebarProvider>
-    </UserProvider>
-  </BrowserRouter>
+  <React.StrictMode>
+    <ThemeProviderWrapper>
+      <BrowserRouter>
+        <UserProvider>
+          <SidebarProvider>
+            <App />
+          </SidebarProvider>
+        </UserProvider>
+      </BrowserRouter>
+    </ThemeProviderWrapper>
+  </React.StrictMode>
 );
