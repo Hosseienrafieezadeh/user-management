@@ -10,7 +10,9 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
+import { Add } from "@mui/icons-material";
 import DashboardLayout from "../components/DashboardLayout";
+import AddUserDialog from "../components/user/AddUserDialog";
 import { useNavigate } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -19,10 +21,10 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const usersRef = useRef([]);
   const navigate = useNavigate();
-
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { open } = useSidebar();
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     if (usersRef.current.length > 0) {
@@ -34,10 +36,8 @@ function Dashboard() {
     fetch("https://reqres.in/api/users?page=1")
       .then((response) => response.json())
       .then((data) => {
-        if (JSON.stringify(data.data) !== JSON.stringify(usersRef.current)) {
-          usersRef.current = data.data;
-          setUsers(data.data);
-        }
+        usersRef.current = data.data;
+        setUsers(data.data);
         setLoading(false);
       })
       .catch((error) => {
@@ -45,6 +45,10 @@ function Dashboard() {
         setLoading(false);
       });
   }, []);
+
+  const handleAddUser = (newUserData) => {
+    setUsers((prev) => [...prev, newUserData]);
+  };
 
   const columns = [
     { field: "id", headerName: "ID", width: isMobile ? 50 : 80 },
@@ -83,7 +87,12 @@ function Dashboard() {
       <Typography
         variant={isMobile ? "h5" : "h4"}
         gutterBottom
-        sx={{ fontWeight: "bold", color: "primary.main", mb: 4 }}
+        sx={{
+          fontWeight: "bold",
+          color: "primary.main",
+          mb: 2,
+          ml: open ? 2 : 0,
+        }}
       >
         Users List
       </Typography>
@@ -102,19 +111,23 @@ function Dashboard() {
           />
         </Box>
       ) : (
-        <Box sx={{ width: "100%", overflowX: "hidden" }}>
-          {" "}
-          {/* 👈 جلوگیری از اسکرول افقی */}
+        <Box
+          sx={{
+            width: "100%",
+            overflowX: "hidden",
+            display: "flex",
+            justifyContent: "flex-start",
+          }}
+        >
           <Paper
             sx={{
-              height: isMobile ? 400 : 500,
-              minWidth: isMobile ? 500 : 700,
-              maxWidth: open ? "calc(100% - 240px)" : "100%", // 👈 تطبیق با سایدبار
+              height: isMobile ? 450 : 550,
+              width: `calc(100% - ${open ? 32 : 0}px)`,
               p: isMobile ? 2 : 3,
               borderRadius: 3,
               boxShadow: 3,
               backgroundColor: "background.paper",
-              transition: "max-width 0.3s ease-in-out",
+              ml: open ? 2 : 0,
             }}
           >
             <DataGrid
@@ -126,9 +139,27 @@ function Dashboard() {
               disableSelectionOnClick
               autoPageSize
             />
+
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<Add />}
+                onClick={() => setOpenDialog(true)}
+                sx={{ textTransform: "none", fontSize: "1rem", px: 4 }}
+              >
+                Add User
+              </Button>
+            </Box>
           </Paper>
         </Box>
       )}
+
+      <AddUserDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onAdd={handleAddUser}
+      />
     </DashboardLayout>
   );
 }

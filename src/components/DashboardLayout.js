@@ -17,13 +17,13 @@ import { Menu, People, Logout } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
 
-const drawerWidth = 240;
+const drawerWidth = 220;
 
 function DashboardLayout({ children }) {
   const { open, toggleDrawer } = useSidebar();
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // 👈 بررسی موبایل
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -32,7 +32,6 @@ function DashboardLayout({ children }) {
 
   return (
     <Box sx={{ display: "flex", width: "100%", overflowX: "hidden" }}>
-      {/* Header */}
       <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
         <Toolbar>
           <IconButton
@@ -52,9 +51,8 @@ function DashboardLayout({ children }) {
         </Toolbar>
       </AppBar>
 
-      {/* Sidebar */}
       <Drawer
-        variant={isMobile ? "temporary" : "persistent"} // 👈 در موبایل temporary
+        variant={isMobile ? "temporary" : "persistent"}
         anchor="left"
         open={open}
         onClose={toggleDrawer}
@@ -75,15 +73,17 @@ function DashboardLayout({ children }) {
         </List>
       </Drawer>
 
-      {/* Main Content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          ml: isMobile ? "0px" : open ? `${drawerWidth}px` : "0px",
-          transition: "margin-left 0.3s ease-in-out",
+          ml: open ? `${drawerWidth}px` : "0px",
+          width: `calc(100% - ${open ? drawerWidth : "0px"})`,
+          transition: "margin-left 0.2s ease-in-out",
           overflowX: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "stretch",
         }}
       >
         <Toolbar />
