@@ -1,33 +1,43 @@
-import React from "react";
+import { Logout, Menu, People } from "@mui/icons-material";
 import {
-  Drawer,
   AppBar,
-  Toolbar,
+  Avatar,
+  Box,
+  Drawer,
+  IconButton,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  IconButton,
+  Toolbar,
   Typography,
-  Box,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { Menu, People, Logout } from "@mui/icons-material";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import EditUserDialog from "../components/user/EditUserDialog";
 import { useSidebar } from "../context/SidebarContext";
+import { useUser } from "../context/UserContext";
 
 const drawerWidth = 220;
 
 function DashboardLayout({ children }) {
+  const { user, updateUser } = useUser();
   const { open, toggleDrawer } = useSidebar();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [openEditDialog, setOpenEditDialog] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/");
+  };
+
+  const handleOpenEditDialog = () => {
+    setOpenEditDialog(true);
   };
 
   return (
@@ -45,6 +55,24 @@ function DashboardLayout({ children }) {
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Admin Dashboard
           </Typography>
+
+          {user && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                cursor: "pointer",
+              }}
+              onClick={handleOpenEditDialog}
+            >
+              <Typography variant="body1">
+                {user.first_name} {user.last_name}
+              </Typography>
+              <Avatar src={user.avatar} alt={user.first_name} />
+            </Box>
+          )}
+
           <IconButton color="inherit" onClick={handleLogout}>
             <Logout />
           </IconButton>
@@ -77,9 +105,8 @@ function DashboardLayout({ children }) {
         component="main"
         sx={{
           flexGrow: 1,
-          ml: open ? `${drawerWidth}px` : "0px",
           width: `calc(100% - ${open ? drawerWidth : "0px"})`,
-          transition: "margin-left 0.2s ease-in-out",
+          transition: "width 0.3s ease-in-out",
           overflowX: "hidden",
           display: "flex",
           flexDirection: "column",
@@ -89,6 +116,13 @@ function DashboardLayout({ children }) {
         <Toolbar />
         {children}
       </Box>
+
+      <EditUserDialog
+        open={openEditDialog}
+        onClose={() => setOpenEditDialog(false)}
+        user={user}
+        onSave={updateUser}
+      />
     </Box>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -14,35 +14,26 @@ import {
 } from "@mui/material";
 import { PhotoCamera } from "@mui/icons-material";
 
-function AddUserDialog({ open, onClose, onAdd }) {
-  const [newUser, setNewUser] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    avatar: null,
-  });
-
+function EditUserDialog({ open, onClose, user, onSave }) {
+  const [editedUser, setEditedUser] = useState(user);
   const [error, setError] = useState(""); // مدیریت خطاها
-  const [success, setSuccess] = useState(false); // پیام موفقیت
+  const [success, setSuccess] = useState(false); // مدیریت پیام موفقیت
 
-  const handleAddUser = () => {
-    if (!newUser.first_name || !newUser.last_name || !newUser.email) {
+  useEffect(() => {
+    if (user) {
+      setEditedUser(user);
+    }
+  }, [user]);
+
+  const handleSave = () => {
+    if (!editedUser.first_name || !editedUser.last_name || !editedUser.email) {
       setError("All fields are required!");
       return;
     }
 
-    const newUserData = {
-      id: Math.floor(Math.random() * 1000),
-      first_name: newUser.first_name,
-      last_name: newUser.last_name,
-      email: newUser.email,
-      avatar: newUser.avatar || `https://i.pravatar.cc/150?u=${Math.random()}`,
-    };
-
-    onAdd(newUserData);
+    onSave(editedUser); // ذخیره تغییرات
     setSuccess(true); // نمایش پیام موفقیت
     onClose();
-    setNewUser({ first_name: "", last_name: "", email: "", avatar: null });
   };
 
   const handleImageUpload = (event) => {
@@ -50,7 +41,7 @@ function AddUserDialog({ open, onClose, onAdd }) {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setNewUser((prevUser) => ({ ...prevUser, avatar: reader.result }));
+        setEditedUser((prevUser) => ({ ...prevUser, avatar: reader.result }));
       };
       reader.readAsDataURL(file);
     }
@@ -59,7 +50,7 @@ function AddUserDialog({ open, onClose, onAdd }) {
   return (
     <>
       <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Add New User</DialogTitle>
+        <DialogTitle>Edit User</DialogTitle>
         <DialogContent>
           <Box
             display="flex"
@@ -69,17 +60,17 @@ function AddUserDialog({ open, onClose, onAdd }) {
             mb={2}
           >
             <Avatar
-              src={newUser.avatar || "https://i.pravatar.cc/150"}
+              src={editedUser?.avatar || "https://i.pravatar.cc/150"}
               sx={{ width: 80, height: 80, mb: 1 }}
             />
             <input
               type="file"
               accept="image/*"
               style={{ display: "none" }}
-              id="upload-avatar"
+              id="upload-avatar-edit"
               onChange={handleImageUpload}
             />
-            <label htmlFor="upload-avatar">
+            <label htmlFor="upload-avatar-edit">
               <IconButton color="primary" component="span">
                 <PhotoCamera />
                 <input type="file" hidden onChange={handleImageUpload} />
@@ -90,26 +81,28 @@ function AddUserDialog({ open, onClose, onAdd }) {
           <TextField
             fullWidth
             label="First Name"
-            value={newUser.first_name}
+            value={editedUser?.first_name || ""}
             onChange={(e) =>
-              setNewUser({ ...newUser, first_name: e.target.value })
+              setEditedUser({ ...editedUser, first_name: e.target.value })
             }
             margin="normal"
           />
           <TextField
             fullWidth
             label="Last Name"
-            value={newUser.last_name}
+            value={editedUser?.last_name || ""}
             onChange={(e) =>
-              setNewUser({ ...newUser, last_name: e.target.value })
+              setEditedUser({ ...editedUser, last_name: e.target.value })
             }
             margin="normal"
           />
           <TextField
             fullWidth
             label="Email"
-            value={newUser.email}
-            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+            value={editedUser?.email || ""}
+            onChange={(e) =>
+              setEditedUser({ ...editedUser, email: e.target.value })
+            }
             margin="normal"
           />
         </DialogContent>
@@ -117,13 +110,13 @@ function AddUserDialog({ open, onClose, onAdd }) {
           <Button onClick={onClose} color="error">
             Cancel
           </Button>
-          <Button onClick={handleAddUser} color="primary" variant="contained">
-            Add
+          <Button onClick={handleSave} color="primary" variant="contained">
+            Save
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* نمایش پیام خطا */}
+      {/* نمایش خطا */}
       <Snackbar
         open={!!error}
         autoHideDuration={3000}
@@ -153,11 +146,11 @@ function AddUserDialog({ open, onClose, onAdd }) {
           variant="filled"
           sx={{ width: "100%" }}
         >
-          User added successfully!
+          User updated successfully!
         </Alert>
       </Snackbar>
     </>
   );
 }
 
-export default AddUserDialog;
+export default EditUserDialog;

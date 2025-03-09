@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   Avatar,
@@ -9,26 +9,29 @@ import {
   CircularProgress,
   useMediaQuery,
   useTheme,
+  Fab,
 } from "@mui/material";
-import { Add } from "@mui/icons-material";
+import { Add, Edit } from "@mui/icons-material";
 import DashboardLayout from "../components/DashboardLayout";
 import AddUserDialog from "../components/user/AddUserDialog";
+import EditUserDialog from "../components/user/EditUserDialog";
 import { useNavigate } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
+import { useUser } from "../context/UserContext";
 
 function Dashboard() {
-  const [users, setUsers] = useState([]);
+  const { users, setUsers } = useUser();
   const [loading, setLoading] = useState(true);
-  const usersRef = useRef([]);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { open } = useSidebar();
   const [openDialog, setOpenDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
-    if (usersRef.current.length > 0) {
-      setUsers(usersRef.current);
+    if (users.length > 0) {
       setLoading(false);
       return;
     }
@@ -36,18 +39,31 @@ function Dashboard() {
     fetch("https://reqres.in/api/users?page=1")
       .then((response) => response.json())
       .then((data) => {
-        usersRef.current = data.data;
         setUsers(data.data);
+        localStorage.setItem("users", JSON.stringify(data.data));
         setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching users:", error);
         setLoading(false);
       });
-  }, []);
+  }, [setUsers]);
 
   const handleAddUser = (newUserData) => {
     setUsers((prev) => [...prev, newUserData]);
+    localStorage.setItem("users", JSON.stringify([...users, newUserData]));
+  };
+
+  const handleEditUser = (updatedUser) => {
+    setUsers((prev) =>
+      prev.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+    );
+    localStorage.setItem(
+      "users",
+      JSON.stringify(
+        users.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+      )
+    );
   };
 
   const columns = [
@@ -64,36 +80,39 @@ function Dashboard() {
     {
       field: "actions",
       headerName: "Actions",
-      flex: isMobile ? 0.5 : 1,
+      flex: isMobile ? 1 : 1.5,
       renderCell: (params) => (
-        <Button
-          variant="contained"
-          color="primary"
-          size="small"
-          onClick={() => navigate(`/user/${params.id}`)}
-          sx={{
-            fontSize: isMobile ? "0.7rem" : "0.875rem",
-            minWidth: isMobile ? "60px" : "100px",
-          }}
-        >
-          View
-        </Button>
+        <>
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={() => navigate(`/user/${params.id}`)}
+            sx={{ fontSize: "0.8rem", mr: 1 }}
+          >
+            View
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="small"
+            startIcon={<Edit />}
+            onClick={() => {
+              setSelectedUser(params.row);
+              setOpenEditDialog(true);
+            }}
+            sx={{ fontSize: "0.8rem" }}
+          >
+            Edit
+          </Button>
+        </>
       ),
     },
   ];
 
   return (
     <DashboardLayout>
-      <Typography
-        variant={isMobile ? "h5" : "h4"}
-        gutterBottom
-        sx={{
-          fontWeight: "bold",
-          color: "primary.main",
-          mb: 2,
-          ml: open ? 2 : 0,
-        }}
-      >
+      <Typography variant="h4" gutterBottom>
         Users List
       </Typography>
 
@@ -104,61 +123,65 @@ function Dashboard() {
           alignItems="center"
           height={300}
         >
-          <CircularProgress
-            size={isMobile ? 40 : 60}
-            thickness={4}
-            color="primary"
-          />
+          <CircularProgress size={60} thickness={4} color="primary" />
         </Box>
       ) : (
-        <Box
+        <Paper
           sx={{
-            width: "100%",
-            overflowX: "hidden",
-            display: "flex",
-            justifyContent: "flex-start",
+            height: 550,
+            width: open ? "calc(100% - 220px)" : "100%",
+            transition: "width 0.3s ease-in-out",
+            p: 2,
+            position: "relative",
+            marginLeft: open ? "0px" : "-20px",
           }}
         >
-          <Paper
-            sx={{
-              height: isMobile ? 450 : 550,
-              width: `calc(100% - ${open ? 32 : 0}px)`,
-              p: isMobile ? 2 : 3,
-              borderRadius: 3,
-              boxShadow: 3,
-              backgroundColor: "background.paper",
-              ml: open ? 2 : 0,
-            }}
-          >
-            <DataGrid
-              rows={users}
-              columns={columns}
-              pageSize={isMobile ? 3 : 5}
-              rowsPerPageOptions={isMobile ? [3, 5] : [5, 10]}
-              checkboxSelection
-              disableSelectionOnClick
-              autoPageSize
-            />
+          <DataGrid
+            rows={users}
+            columns={columns}
+            pageSize={5}
+            checkboxSelection
+          />
 
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<Add />}
-                onClick={() => setOpenDialog(true)}
-                sx={{ textTransform: "none", fontSize: "1rem", px: 4 }}
-              >
-                Add User
-              </Button>
-            </Box>
-          </Paper>
-        </Box>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<Add />}
+              onClick={() => setOpenDialog(true)}
+              sx={{ textTransform: "none", fontSize: "1rem", px: 4 }}
+            >
+              Add User
+            </Button>
+          </Box>
+        </Paper>
+      )}
+
+      {isMobile && (
+        <Fab
+          color="success"
+          aria-label="add"
+          sx={{
+            position: "fixed",
+            bottom: 16,
+            right: 16,
+          }}
+          onClick={() => setOpenDialog(true)}
+        >
+          <Add />
+        </Fab>
       )}
 
       <AddUserDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onAdd={handleAddUser}
+      />
+      <EditUserDialog
+        open={openEditDialog}
+        onClose={() => setOpenEditDialog(false)}
+        user={selectedUser}
+        onSave={handleEditUser}
       />
     </DashboardLayout>
   );

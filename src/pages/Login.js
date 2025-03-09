@@ -12,10 +12,12 @@ import {
   Alert,
 } from "@mui/material";
 import { Email, Lock } from "@mui/icons-material";
+import { useUser } from "../context/UserContext"; // فراخوانی useUser
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { loginUser } = useUser(); // دریافت loginUser از UserContext
+  const [email, setEmail] = useState("eve.holt@reqres.in");
+  const [password, setPassword] = useState("cityslicka");
   const [error, setError] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState(false);
   const navigate = useNavigate();
@@ -35,11 +37,23 @@ function Login() {
 
       const data = await response.json();
       localStorage.setItem("token", data.token);
+
+      const usersResponse = await fetch("https://reqres.in/api/users?page=1");
+      const usersData = await usersResponse.json();
+      const user = usersData.data.find((user) => user.email === email);
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      loginUser(user); // فراخوانی loginUser
+
       setWelcomeMessage(true);
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);
     } catch (error) {
+      console.error("Login Error:", error);
       setError(true);
     }
   };
