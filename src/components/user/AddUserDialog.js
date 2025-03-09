@@ -22,8 +22,8 @@ function AddUserDialog({ open, onClose, onAdd }) {
     avatar: null,
   });
 
-  const [error, setError] = useState(""); // مدیریت خطاها
-  const [success, setSuccess] = useState(false); // پیام موفقیت
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleAddUser = () => {
     if (!newUser.first_name || !newUser.last_name || !newUser.email) {
@@ -40,7 +40,7 @@ function AddUserDialog({ open, onClose, onAdd }) {
     };
 
     onAdd(newUserData);
-    setSuccess(true); // نمایش پیام موفقیت
+    setSuccess(true);
     onClose();
     setNewUser({ first_name: "", last_name: "", email: "", avatar: null });
   };
@@ -123,7 +123,6 @@ function AddUserDialog({ open, onClose, onAdd }) {
         </DialogActions>
       </Dialog>
 
-      {/* نمایش پیام خطا */}
       <Snackbar
         open={!!error}
         autoHideDuration={3000}
@@ -140,7 +139,6 @@ function AddUserDialog({ open, onClose, onAdd }) {
         </Alert>
       </Snackbar>
 
-      {/* نمایش پیام موفقیت */}
       <Snackbar
         open={success}
         autoHideDuration={2000}

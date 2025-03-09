@@ -16,8 +16,8 @@ import { PhotoCamera } from "@mui/icons-material";
 
 function EditUserDialog({ open, onClose, user, onSave }) {
   const [editedUser, setEditedUser] = useState(user);
-  const [error, setError] = useState(""); // مدیریت خطاها
-  const [success, setSuccess] = useState(false); // مدیریت پیام موفقیت
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -31,9 +31,8 @@ function EditUserDialog({ open, onClose, user, onSave }) {
       return;
     }
 
-    onSave(editedUser); // ذخیره تغییرات
-    setSuccess(true); // نمایش پیام موفقیت
-    onClose();
+    onSave(editedUser);
+    setSuccess(true);
   };
 
   const handleImageUpload = (event) => {
@@ -116,7 +115,6 @@ function EditUserDialog({ open, onClose, user, onSave }) {
         </DialogActions>
       </Dialog>
 
-      {/* نمایش خطا */}
       <Snackbar
         open={!!error}
         autoHideDuration={3000}
@@ -133,7 +131,6 @@ function EditUserDialog({ open, onClose, user, onSave }) {
         </Alert>
       </Snackbar>
 
-      {/* نمایش پیام موفقیت */}
       <Snackbar
         open={success}
         autoHideDuration={2000}

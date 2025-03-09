@@ -1,21 +1,20 @@
-import { Route, Routes } from "react-router-dom";
-import UserDetails from "./components/UserDetails";
-import { SidebarProvider } from "./context/SidebarContext";
-import Dashboard from "./pages/Dashboard";
+import React from "react";
+import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
-import { UserProvider } from "./context/UserContext";
+import Dashboard from "./pages/Dashboard";
+import ProtectedRoute from "./protected/ProtectedRoute";
 
 function App() {
   return (
-    <UserProvider>
-      <SidebarProvider>
-        <Routes>
-          <Route path="/" element={<Login />} />
+    <>
+      <Routes>
+        <Route path="/" element={<Login />} />
+
+        <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/user/:id" element={<UserDetails />} />
-        </Routes>
-      </SidebarProvider>
-    </UserProvider>
+        </Route>
+      </Routes>
+    </>
   );
 }
 

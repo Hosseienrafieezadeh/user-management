@@ -12,10 +12,10 @@ import {
   Alert,
 } from "@mui/material";
 import { Email, Lock } from "@mui/icons-material";
-import { useUser } from "../context/UserContext"; // فراخوانی useUser
+import { useUser } from "../context/UserContext";
 
 function Login() {
-  const { loginUser } = useUser(); // دریافت loginUser از UserContext
+  const { loginUser } = useUser();
   const [email, setEmail] = useState("eve.holt@reqres.in");
   const [password, setPassword] = useState("cityslicka");
   const [error, setError] = useState(false);
@@ -46,7 +46,7 @@ function Login() {
         throw new Error("User not found");
       }
 
-      loginUser(user); // فراخوانی loginUser
+      loginUser(user);
 
       setWelcomeMessage(true);
       setTimeout(() => {

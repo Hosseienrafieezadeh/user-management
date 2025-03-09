@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   Avatar,
@@ -10,11 +10,13 @@ import {
   useMediaQuery,
   useTheme,
   Fab,
+  Tooltip,
 } from "@mui/material";
-import { Add, Edit } from "@mui/icons-material";
+import { Add, Edit, Delete } from "@mui/icons-material";
 import DashboardLayout from "../components/DashboardLayout";
 import AddUserDialog from "../components/user/AddUserDialog";
 import EditUserDialog from "../components/user/EditUserDialog";
+import DeleteUserDialog from "../components/user/DeleteUserDialog";
 import { useNavigate } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
 import { useUser } from "../context/UserContext";
@@ -22,16 +24,19 @@ import { useUser } from "../context/UserContext";
 function Dashboard() {
   const { users, setUsers } = useUser();
   const [loading, setLoading] = useState(true);
+  const usersRef = useRef([]);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { open } = useSidebar();
   const [openDialog, setOpenDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
-    if (users.length > 0) {
+    if (usersRef.current.length > 0) {
+      setUsers(usersRef.current);
       setLoading(false);
       return;
     }
@@ -39,8 +44,8 @@ function Dashboard() {
     fetch("https://reqres.in/api/users?page=1")
       .then((response) => response.json())
       .then((data) => {
+        usersRef.current = data.data;
         setUsers(data.data);
-        localStorage.setItem("users", JSON.stringify(data.data));
         setLoading(false);
       })
       .catch((error) => {
@@ -50,28 +55,25 @@ function Dashboard() {
   }, [setUsers]);
 
   const handleAddUser = (newUserData) => {
-    setUsers((prev) => [...prev, newUserData]);
-    localStorage.setItem("users", JSON.stringify([...users, newUserData]));
+    setUsers((prev) => [...prev, newUserData]); //
   };
 
   const handleEditUser = (updatedUser) => {
     setUsers((prev) =>
       prev.map((user) => (user.id === updatedUser.id ? updatedUser : user))
     );
-    localStorage.setItem(
-      "users",
-      JSON.stringify(
-        users.map((user) => (user.id === updatedUser.id ? updatedUser : user))
-      )
-    );
+  };
+
+  const handleDeleteUser = (userId) => {
+    setUsers((prev) => prev.filter((user) => user.id !== userId));
   };
 
   const columns = [
-    { field: "id", headerName: "ID", width: isMobile ? 50 : 80 },
+    { field: "id", headerName: "ID", width: isMobile ? 50 : 100 },
     {
       field: "avatar",
       headerName: "Avatar",
-      width: isMobile ? 60 : 80,
+      width: isMobile ? 60 : 100,
       renderCell: (params) => <Avatar src={params.value} />,
     },
     { field: "first_name", headerName: "First Name", flex: 1 },
@@ -80,32 +82,62 @@ function Dashboard() {
     {
       field: "actions",
       headerName: "Actions",
-      flex: isMobile ? 1 : 1.5,
+      flex: 2,
+      minWidth: 280, // جلوگیری از فشرده شدن دکمه‌ها
+      sortable: false,
       renderCell: (params) => (
-        <>
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={() => navigate(`/user/${params.id}`)}
-            sx={{ fontSize: "0.8rem", mr: 1 }}
-          >
-            View
-          </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="small"
-            startIcon={<Edit />}
-            onClick={() => {
-              setSelectedUser(params.row);
-              setOpenEditDialog(true);
-            }}
-            sx={{ fontSize: "0.8rem" }}
-          >
-            Edit
-          </Button>
-        </>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center", // **وسط‌چین کردن افقی**
+            alignItems: "center", // **وسط‌چین کردن عمودی**
+            height: "100%", // 👈 باعث می‌شود کل ارتفاع سلول پر شود
+            width: "100%",
+            gap: 1,
+          }}
+        >
+          <Tooltip title="View">
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              sx={{ fontSize: "0.8rem", minWidth: "70px" }}
+              onClick={() => navigate(`/user/${params.id}`)}
+            >
+              View
+            </Button>
+          </Tooltip>
+          <Tooltip title="Edit">
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              startIcon={<Edit />}
+              sx={{ fontSize: "0.8rem", minWidth: "70px" }}
+              onClick={() => {
+                setSelectedUser(params.row);
+                setOpenEditDialog(true);
+              }}
+            >
+              Edit
+            </Button>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              variant="contained"
+              color="error"
+              size="small"
+              startIcon={<Delete />}
+              sx={{ fontSize: "0.8rem", minWidth: "70px" }}
+              onClick={() => {
+                setSelectedUser(params.row);
+                setOpenDeleteDialog(true);
+              }}
+            >
+              Delete
+            </Button>
+          </Tooltip>
+        </Box>
       ),
     },
   ];
@@ -133,7 +165,7 @@ function Dashboard() {
             transition: "width 0.3s ease-in-out",
             p: 2,
             position: "relative",
-            marginLeft: open ? "0px" : "-20px",
+            overflowX: "auto",
           }}
         >
           <DataGrid
@@ -182,6 +214,12 @@ function Dashboard() {
         onClose={() => setOpenEditDialog(false)}
         user={selectedUser}
         onSave={handleEditUser}
+      />
+      <DeleteUserDialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+        user={selectedUser}
+        onDelete={handleDeleteUser}
       />
     </DashboardLayout>
   );
