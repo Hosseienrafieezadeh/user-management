@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React from "react";
 import {
   Drawer,
   AppBar,
@@ -10,31 +10,30 @@ import {
   IconButton,
   Typography,
   Box,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { Menu, People, Logout } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { useSidebar } from "../context/SidebarContext";
 
 const drawerWidth = 240;
 
-function DashboardLayout({ children, isMobile }) {
-  const [open, setOpen] = useState(!isMobile);
+function DashboardLayout({ children }) {
+  const { open, toggleDrawer } = useSidebar();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // 👈 بررسی موبایل
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
-  }, [navigate]);
-
-  const toggleDrawer = useCallback(() => {
-    setOpen((prev) => !prev);
-  }, []);
+  };
 
   return (
-    <Box sx={{ display: "flex", width: "100%" }}>
-      <AppBar
-        position="fixed"
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-      >
+    <Box sx={{ display: "flex", width: "100%", overflowX: "hidden" }}>
+      {/* Header */}
+      <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
         <Toolbar>
           <IconButton
             color="inherit"
@@ -53,8 +52,9 @@ function DashboardLayout({ children, isMobile }) {
         </Toolbar>
       </AppBar>
 
+      {/* Sidebar */}
       <Drawer
-        variant={isMobile ? "temporary" : "persistent"}
+        variant={isMobile ? "temporary" : "persistent"} // 👈 در موبایل temporary
         anchor="left"
         open={open}
         onClose={toggleDrawer}
@@ -75,17 +75,19 @@ function DashboardLayout({ children, isMobile }) {
         </List>
       </Drawer>
 
+      {/* Main Content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          width: `calc(100% - ${open && !isMobile ? drawerWidth : "0px"})`,
-          transition: "width 0.3s ease-in-out",
-          paddingLeft: open && !isMobile ? "16px" : "0px",
+          ml: isMobile ? "0px" : open ? `${drawerWidth}px` : "0px",
+          transition: "margin-left 0.3s ease-in-out",
+          overflowX: "hidden",
         }}
       >
-        <Toolbar />ُ{children}
+        <Toolbar />
+        {children}
       </Box>
     </Box>
   );

@@ -12,14 +12,17 @@ import {
 } from "@mui/material";
 import DashboardLayout from "../components/DashboardLayout";
 import { useNavigate } from "react-router-dom";
+import { useSidebar } from "../context/SidebarContext";
 
 function Dashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const usersRef = useRef([]);
   const navigate = useNavigate();
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { open } = useSidebar();
 
   useEffect(() => {
     if (usersRef.current.length > 0) {
@@ -49,30 +52,15 @@ function Dashboard() {
       field: "avatar",
       headerName: "Avatar",
       width: isMobile ? 60 : 80,
-      renderCell: (params) => (
-        <Avatar
-          src={params.value}
-          sx={{
-            width: isMobile ? 30 : 40,
-            height: isMobile ? 30 : 40,
-            boxShadow: 2,
-          }}
-        />
-      ),
+      renderCell: (params) => <Avatar src={params.value} />,
     },
-    { field: "first_name", headerName: "First Name", minWidth: 100, flex: 1 },
-    { field: "last_name", headerName: "Last Name", minWidth: 100, flex: 1 },
-    {
-      field: "email",
-      headerName: "Email",
-      minWidth: isMobile ? 150 : 180,
-      flex: 1.5,
-    },
+    { field: "first_name", headerName: "First Name", flex: 1 },
+    { field: "last_name", headerName: "Last Name", flex: 1 },
+    { field: "email", headerName: "Email", flex: 1.5 },
     {
       field: "actions",
       headerName: "Actions",
-      minWidth: isMobile ? 120 : 150,
-      flex: 1,
+      flex: isMobile ? 0.5 : 1,
       renderCell: (params) => (
         <Button
           variant="contained"
@@ -80,14 +68,8 @@ function Dashboard() {
           size="small"
           onClick={() => navigate(`/user/${params.id}`)}
           sx={{
-            textTransform: "none",
-            boxShadow: 2,
             fontSize: isMobile ? "0.7rem" : "0.875rem",
-            "&:hover": {
-              boxShadow: 4,
-              transform: "translateY(-2px)",
-            },
-            transition: "all 0.2s",
+            minWidth: isMobile ? "60px" : "100px",
           }}
         >
           View
@@ -97,7 +79,7 @@ function Dashboard() {
   ];
 
   return (
-    <DashboardLayout isMobile={isMobile}>
+    <DashboardLayout>
       <Typography
         variant={isMobile ? "h5" : "h4"}
         gutterBottom
@@ -120,16 +102,19 @@ function Dashboard() {
           />
         </Box>
       ) : (
-        <Box sx={{ width: "100%", overflowX: "auto" }}>
+        <Box sx={{ width: "100%", overflowX: "hidden" }}>
+          {" "}
+          {/* 👈 جلوگیری از اسکرول افقی */}
           <Paper
             sx={{
               height: isMobile ? 400 : 500,
               minWidth: isMobile ? 500 : 700,
-              maxWidth: "100%",
+              maxWidth: open ? "calc(100% - 240px)" : "100%", // 👈 تطبیق با سایدبار
               p: isMobile ? 2 : 3,
               borderRadius: 3,
               boxShadow: 3,
               backgroundColor: "background.paper",
+              transition: "max-width 0.3s ease-in-out",
             }}
           >
             <DataGrid
@@ -140,21 +125,6 @@ function Dashboard() {
               checkboxSelection
               disableSelectionOnClick
               autoPageSize
-              sx={{
-                border: "none",
-                "& .MuiDataGrid-columnHeaders": {
-                  backgroundColor: "primary.main",
-                  color: "white",
-                  fontSize: isMobile ? "0.8rem" : "1rem",
-                  fontWeight: "bold",
-                },
-                "& .MuiDataGrid-cell": {
-                  borderBottom: "1px solid rgba(224, 224, 224, 0.5)",
-                },
-                "& .MuiDataGrid-row:hover": {
-                  backgroundColor: "action.hover",
-                },
-              }}
             />
           </Paper>
         </Box>
